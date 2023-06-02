@@ -14,7 +14,7 @@
 
 
 
-            Console.Write("Play Again? \n [Y] - 'Yes' \n [Any Key] - 'No' \n ...)");
+            Console.Write("Play Again? \n [Y] - 'Yes' \n [Any Key] - 'No' \n ");
             var replay = Console.ReadLine();
 
             if (replay == "Y" || replay == "y")
@@ -38,20 +38,35 @@
             int selection;
 
             // Play Game
-            
+            string availTarots = string.Empty;
 
-            while (tarots.Where(t => !t.IsOwned).Count() > 0)
+            while (availTarots != "Available Tarots: ")
             {
                 Console.Write("\nChoose a Tarot: ");
                 selection = int.Parse(Console.ReadLine());
 
                 ChooseTarot(selection);
-                OutputStatus();
+                availTarots = OutputStatus(out string activeTarots);
             }
 
+            // Fate takes remaining tarots
+            foreach (var tarot in tarots.Where(t => !t.IsOwned))
+            {
+                tarot.IsOwned = true;
+                tarot.IsFates = true;
+                fateScore += tarot.Identity;
+            }
+
+            OutputStatus(out string none);
+
+            // Final score comparison
             if (myScore > fateScore)
             {
                 Console.WriteLine("You Win!");
+            }
+            else
+            {
+                Console.WriteLine("Fate Wins. You Die!");
             }
 
 
@@ -129,20 +144,13 @@
                 return false;
             }
 
-            void OutputScore()
+            string OutputStatus(out string availableTarots)
             {
-                Console.WriteLine("\n \n -------------------------");
-                Console.WriteLine($"My Score: {myScore}");
-                Console.WriteLine($"Fate's Score: {fateScore}");
-            }
-
-            void OutputStatus()
-            {
-                Console.WriteLine($"My Score: {myScore}");
-                Console.WriteLine($"Fate's Score: {fateScore}");
                 Console.WriteLine("\n------- DECK STATUS: --------");
+                Console.WriteLine($"My Score: {myScore}");
+                Console.WriteLine($"Fate's Score: {fateScore}");
 
-                string availableTarots = "Available Tarots: ";
+                availableTarots = "Available Tarots: ";
                 foreach (var tarot in tarots.Where(t => !t.IsOwned && TarotHasFactorsInPlay(t)))
                 {
                     availableTarots += $"{{{tarot.Identity}}} ";
@@ -162,7 +170,9 @@
                 {
                     fatesTarots += $"{{{tarot.Identity}}} ";
                 }
-                Console.WriteLine(fatesTarots + "\n\n");
+                Console.WriteLine(fatesTarots);
+
+                return availableTarots;
             }
         }
 
